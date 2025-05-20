@@ -6,7 +6,7 @@ document.getElementById('generate').addEventListener('click', async () => {
     .filter(url => url.startsWith('http'))
     .map(url => encodeURIComponent(url))
     .join(',');
-  const baseUrl = 'https://dein-internes-hosting/open-tabs.html?urls=';
+  const baseUrl = 'https://smnprtn.github.io/tab-exporter/open-tabs.html?urls=';
   const fullUrl = baseUrl + urls;
   try {
     await navigator.clipboard.writeText(fullUrl);
