@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Exporter",
+  "version": "1.0",
+  "description": "Exportiere alle offenen Tabs als wiederverwendbaren Link.",
+  "permissions": ["tabs", "downloads", "clipboardWrite"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
