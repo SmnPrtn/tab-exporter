@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tabs öffnen</title>
+  <script>
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      const urls = params.get('urls');
+      if (urls) {
+        const decodedUrls = urls.split(',').map(u => decodeURIComponent(u));
+        decodedUrls.forEach(url => window.open(url, '_blank'));
+      }
+    };
+  </script>
+</head>
+<body>
+  <p>Tabs werden geöffnet...</p>
+</body>
+</html>
