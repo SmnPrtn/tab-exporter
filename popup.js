@@ -1,13 +1,41 @@
-// Global variables
+// Globale Variablen
 let allTabs = [];
+let currentWindowId = null;
+let showAllWindowsMode = true;
 
-// Function to load all open tabs
+// Funktion zum Laden aller geöffneten Tabs
 async function loadTabs() {
+  // Aktuelle Fenster-ID speichern
+  let [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  currentWindowId = activeTab.windowId;
+  
+  // Alle Tabs laden
   allTabs = await chrome.tabs.query({});
-  displayTabs(allTabs);
+  
+  // Tabs basierend auf aktueller Einstellung anzeigen
+  displayFilteredTabs();
 }
 
-// Display all tabs with checkboxes
+// Funktion zum Filtern und Anzeigen der Tabs
+function displayFilteredTabs() {
+  let filteredTabs;
+  
+  if (showAllWindowsMode) {
+    // Alle Fenster anzeigen
+    filteredTabs = allTabs;
+    document.getElementById('showAllWindows').classList.add('active');
+    document.getElementById('showCurrentWindow').classList.remove('active');
+  } else {
+    // Nur aktuelles Fenster anzeigen
+    filteredTabs = allTabs.filter(tab => tab.windowId === currentWindowId);
+    document.getElementById('showAllWindows').classList.remove('active');
+    document.getElementById('showCurrentWindow').classList.add('active');
+  }
+  
+  displayTabs(filteredTabs);
+}
+
+// Anzeigen der Tabs mit Checkboxen
 function displayTabs(tabs) {
   const tabList = document.getElementById('tabList');
   tabList.innerHTML = '';
@@ -20,18 +48,18 @@ function displayTabs(tabs) {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.checked = true;
-      checkbox.dataset.index = index;
+      checkbox.dataset.tabId = tab.id;
       
       const favicon = document.createElement('img');
-      favicon.src = tab.favIconUrl || 'placeholder-icon.png';
+      favicon.src = tab.favIconUrl || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
       favicon.onerror = () => {
-        favicon.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
-      }
+        favicon.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+      };
       
       const title = document.createElement('div');
       title.className = 'tab-title';
       title.textContent = tab.title;
-      title.title = tab.url; // Tooltip with full URL
+      title.title = tab.url; // Tooltip mit vollständiger URL
       
       tabItem.appendChild(checkbox);
       tabItem.appendChild(favicon);
@@ -41,28 +69,29 @@ function displayTabs(tabs) {
   });
 }
 
-// Generate a link for selected tabs
+// Generieren eines Links für ausgewählte Tabs
 async function generateLink() {
-  const selectedTabIndices = Array.from(document.querySelectorAll('#tabList input[type="checkbox"]:checked'))
-    .map(checkbox => parseInt(checkbox.dataset.index));
+  const selectedTabIds = Array.from(document.querySelectorAll('#tabList input[type="checkbox"]:checked'))
+    .map(checkbox => parseInt(checkbox.dataset.tabId));
   
-  if (selectedTabIndices.length === 0) {
-    showStatus('Please select at least one tab!', true);
+  if (selectedTabIds.length === 0) {
+    showStatus('Bitte wähle mindestens einen Tab aus!', true);
     return;
   }
   
-  const selectedTabs = selectedTabIndices.map(index => allTabs[index]);
+  // Tabs basierend auf den IDs finden
+  const selectedTabs = allTabs.filter(tab => selectedTabIds.includes(tab.id));
   
-  // Prepare URLs for the link
+  // URLs für den Link vorbereiten
   const urls = selectedTabs
     .map(tab => tab.url)
     .filter(url => url.startsWith('http'))
     .map(url => encodeURIComponent(url))
     .join(',');
   
-  // Check URL length
+  // Prüfen der URL-Länge
   if (urls.length > 7000) {
-    showStatus('Warning: The URL is very long and might cause issues in some browsers. Please reduce the number of tabs.', true);
+    showStatus('Warnung: Die URL ist sehr lang und könnte in manchen Browsern Probleme verursachen. Bitte reduziere die Anzahl der Tabs.', true);
   }
   
   const baseUrl = 'https://smnprtn.github.io/tab-exporter/open-tabs.html?urls=';
@@ -70,38 +99,39 @@ async function generateLink() {
   
   try {
     await navigator.clipboard.writeText(fullUrl);
-    showStatus(`Link for ${selectedTabIndices.length} tabs copied to clipboard!`);
+    showStatus(`Link für ${selectedTabIds.length} Tabs in die Zwischenablage kopiert!`);
   } catch (err) {
-    showStatus('Error copying link: ' + err.message, true);
+    showStatus('Fehler beim Kopieren des Links: ' + err.message, true);
   }
 }
 
-// Save tab set with name
+// Tab-Set mit Namen speichern
 async function saveTabSet() {
   const setName = document.getElementById('setName').value.trim();
   if (!setName) {
-    showStatus('Please enter a name for the tab set!', true);
+    showStatus('Bitte gib einen Namen für das Tab-Set ein!', true);
     return;
   }
   
-  const selectedTabIndices = Array.from(document.querySelectorAll('#tabList input[type="checkbox"]:checked'))
-    .map(checkbox => parseInt(checkbox.dataset.index));
+  const selectedTabIds = Array.from(document.querySelectorAll('#tabList input[type="checkbox"]:checked'))
+    .map(checkbox => parseInt(checkbox.dataset.tabId));
   
-  if (selectedTabIndices.length === 0) {
-    showStatus('Please select at least one tab!', true);
+  if (selectedTabIds.length === 0) {
+    showStatus('Bitte wähle mindestens einen Tab aus!', true);
     return;
   }
   
-  const selectedTabs = selectedTabIndices.map(index => {
-    const tab = allTabs[index];
-    return {
-      url: tab.url,
-      title: tab.title,
-      favIconUrl: tab.favIconUrl
-    };
-  });
+  // Tabs basierend auf den IDs finden
+  const selectedTabs = allTabs.filter(tab => selectedTabIds.includes(tab.id))
+    .map(tab => {
+      return {
+        url: tab.url,
+        title: tab.title,
+        favIconUrl: tab.favIconUrl
+      };
+    });
   
-  // Send to background script for saving
+  // Zum Background-Script senden zum Speichern
   chrome.runtime.sendMessage(
     { 
       action: 'saveTabs', 
@@ -112,16 +142,16 @@ async function saveTabSet() {
       if (response && response.success) {
         document.getElementById('setName').value = '';
         document.getElementById('saveForm').style.display = 'none';
-        showStatus(`Tab set "${setName}" successfully saved!`);
+        showStatus(`Tab-Set "${setName}" erfolgreich gespeichert!`);
         loadSavedSets();
       } else {
-        showStatus('Error saving tab set!', true);
+        showStatus('Fehler beim Speichern des Tab-Sets!', true);
       }
     }
   );
 }
 
-// Show status message
+// Statusnachricht anzeigen
 function showStatus(message, isError = false) {
   const status = document.getElementById('status');
   status.textContent = message;
@@ -132,91 +162,98 @@ function showStatus(message, isError = false) {
     status.className = '';
   }
   
-  // Auto-hide after 5 seconds
+  // Nach 5 Sekunden automatisch ausblenden
   setTimeout(() => {
     status.textContent = '';
     status.className = '';
   }, 5000);
 }
 
-// Delete a saved tab set
-function deleteTabSet(setName) {
-  chrome.runtime.sendMessage(
-    { 
-      action: 'deleteTabSet', 
-      setName: setName 
-    },
-    response => {
-      if (response && response.success) {
-        showStatus(`Tab set "${setName}" deleted!`);
-        loadSavedSets();
-      } else {
-        showStatus('Error deleting tab set!', true);
-      }
-    }
-  );
-}
-
-// Load and display saved tab sets
+// Gespeicherte Tab-Sets laden und anzeigen
 function loadSavedSets() {
   chrome.runtime.sendMessage({ action: 'getSavedSets' }, response => {
     const savedSetsList = document.getElementById('savedSetsList');
     savedSetsList.innerHTML = '';
     
     if (!response.sets || Object.keys(response.sets).length === 0) {
-      savedSetsList.textContent = 'No saved tab sets available.';
+      savedSetsList.textContent = 'Keine gespeicherten Tab-Sets vorhanden.';
       return;
     }
     
     for (const [name, tabs] of Object.entries(response.sets)) {
       const setItem = document.createElement('div');
-      setItem.className = 'set-item';
+      setItem.className = 'tab-item';
       
       const setTitle = document.createElement('div');
       setTitle.className = 'tab-title';
-      setTitle.textContent = name + ` (${tabs.length} tabs)`;
+      setTitle.textContent = name + ` (${tabs.length} Tabs)`;
       
-      const setActions = document.createElement('div');
-      setActions.className = 'set-actions';
+      const buttonsContainer = document.createElement('div');
+      buttonsContainer.style.marginLeft = 'auto';
+      buttonsContainer.style.display = 'flex';
+      buttonsContainer.style.gap = '5px';
       
-      const loadButton = document.createElement('button');
-      loadButton.textContent = 'Copy Link';
-      loadButton.addEventListener('click', () => {
+      const copyButton = document.createElement('button');
+      copyButton.textContent = 'Link kopieren';
+      copyButton.style.padding = '4px 8px';
+      copyButton.style.fontSize = '12px';
+      copyButton.addEventListener('click', () => {
         const urls = tabs.map(tab => encodeURIComponent(tab.url)).join(',');
         const baseUrl = 'https://smnprtn.github.io/tab-exporter/open-tabs.html?urls=';
         const fullUrl = baseUrl + urls;
         navigator.clipboard.writeText(fullUrl);
-        showStatus(`Link for set "${name}" copied to clipboard!`);
+        showStatus(`Link für Set "${name}" in die Zwischenablage kopiert!`);
       });
       
       const deleteButton = document.createElement('button');
-      deleteButton.textContent = 'Delete';
-      deleteButton.className = 'delete';
+      deleteButton.textContent = 'Löschen';
+      deleteButton.style.padding = '4px 8px';
+      deleteButton.style.fontSize = '12px';
+      deleteButton.style.backgroundColor = '#db4437';
       deleteButton.addEventListener('click', () => {
-        if (confirm(`Are you sure you want to delete the tab set "${name}"?`)) {
-          deleteTabSet(name);
+        if (confirm(`Möchten Sie das Tab-Set "${name}" wirklich löschen?`)) {
+          chrome.runtime.sendMessage(
+            { action: 'deleteSet', setName: name }, 
+            response => {
+              if (response && response.success) {
+                loadSavedSets();
+                showStatus(`Tab-Set "${name}" wurde gelöscht.`);
+              }
+            }
+          );
         }
       });
       
-      setActions.appendChild(loadButton);
-      setActions.appendChild(deleteButton);
+      buttonsContainer.appendChild(copyButton);
+      buttonsContainer.appendChild(deleteButton);
       
       setItem.appendChild(setTitle);
-      setItem.appendChild(setActions);
+      setItem.appendChild(buttonsContainer);
       savedSetsList.appendChild(setItem);
     }
   });
 }
 
-// Event listeners
+// Event-Listener
 document.addEventListener('DOMContentLoaded', () => {
-  // Load tabs
+  // Tabs laden
   loadTabs();
   
-  // Get saved sets
+  // Gespeicherte Sets abrufen 
   loadSavedSets();
   
-  // Add event listeners
+  // Fenster-Auswahl Event-Listener
+  document.getElementById('showAllWindows').addEventListener('click', () => {
+    showAllWindowsMode = true;
+    displayFilteredTabs();
+  });
+  
+  document.getElementById('showCurrentWindow').addEventListener('click', () => {
+    showAllWindowsMode = false;
+    displayFilteredTabs();
+  });
+  
+  // Event-Listener hinzufügen
   document.getElementById('generate').addEventListener('click', generateLink);
   
   document.getElementById('selectAll').addEventListener('click', () => {
