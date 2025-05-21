@@ -1,19 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tabs öffnen</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    
+    h1 {
+      color: #4285f4;
+    }
+    
+    #status {
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    button {
+      padding: 8px 16px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    button:hover {
+      background-color: #3367d6;
+    }
+    
+    #tabList {
+      margin-top: 20px;
+    }
+    
+    .tab-item {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .tab-item img {
+      width: 16px;
+      height: 16px;
+      margin-right: 10px;
+    }
+    
+    progress {
+      width: 100%;
+      margin: 10px 0;
+    }
+  </style>
   <script>
-    window.onload = function() {
+    // URLs aus den Query-Parametern extrahieren
+    function getUrlsFromParams() {
       const params = new URLSearchParams(window.location.search);
-      const urls = params.get('urls');
-      if (urls) {
-        const decodedUrls = urls.split(',').map(u => decodeURIComponent(u));
-        decodedUrls.forEach(url => window.open(url, '_blank'));
+      const urlsParam = params.get('urls');
+      
+      if (!urlsParam) {
+        return [];
       }
+      
+      return urlsParam.split(',').map(u => decodeURIComponent(u));
+    }
+    
+    // Tab-Liste anzeigen
+    function displayTabList(urls) {
+      const tabList = document.getElementById('tabList');
+      tabList.innerHTML = '';
+      
+      urls.forEach((url, index) => {
+        const tabItem = document.createElement('div');
+        tabItem.className = 'tab-item';
+        
+        // Versuchen, die Domain als Icon-Quelle zu nutzen
+        const domain = new URL(url).origin;
+        const favicon = document.createElement('img');
+        favicon.src = `${domain}/favicon.ico`;
+        favicon.onerror = () => {
+          favicon.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+        };
+        
+        const urlText = document.createElement('a');
+        urlText.href = url;
+        urlText.textContent = url;
+        urlText.target = '_blank';
+        
+        tabItem.appendChild(favicon);
+        tabItem.appendChild(urlText);
+        tabList.appendChild(tabItem);
+      });
+    }
+    
+    // Tabs öffnen mit Fortschrittsanzeige
+    async function openTabs(urls) {
+      const statusElement = document.getElementById('status');
+      const progressElement = document.getElementById('progress');
+      
+      if (urls.length === 0) {
+        statusElement.textContent = 'Keine URLs gefunden.';
+        document.getElementById('controls').style.display = 'none';
+        return;
+      }
+      
+      statusElement.textContent = 'Bereit zum Öffnen von ' + urls.length + ' Tabs.';
+      document.getElementById('totalTabs').textContent = urls.length;
+      
+      document.getElementById('openAllBtn').addEventListener('click', async () => {
+        statusElement.textContent = 'Öffne Tabs...';
+        progressElement.max = urls.length;
+        progressElement.value = 0;
+        
+        document.getElementById('controls').style.display = 'none';
+        document.getElementById('progressContainer').style.display = 'block';
+        
+        // Tabs mit Verzögerung öffnen, um Browser-Blockierung zu vermeiden
+        for (let i = 0; i < urls.length; i++) {
+          window.open(urls[i], '_blank');
+          progressElement.value = i + 1;
+          document.getElementById('currentTab').textContent = i + 1;
+          
+          // Kleine Verzögerung zwischen Tab-Öffnungen
+          if (i < urls.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        }
+        
+        statusElement.textContent = 'Alle Tabs wurden geöffnet!';
+      });
+    }
+    
+    // Initialisierung nach Seitenladen
+    window.onload = function() {
+      const urls = getUrlsFromParams();
+      displayTabList(urls);
+      openTabs(urls);
     };
   </script>
 </head>
 <body>
-  <p>Tabs werden geöffnet...</p>
+  <h1>Tab Exporter</h1>
+  
+  <div id="status">Tabs werden geladen...</div>
+  
+  <div id="controls">
+    <p>Möchten Sie <span id="totalTabs">0</span> Tabs öffnen?</p>
+    <button id="openAllBtn">Alle Tabs jetzt öffnen</button>
+    <button onclick="window.close()">Abbrechen</button>
+  </div>
+  
+  <div id="progressContainer" style="display: none;">
+    <p>Öffne Tab <span id="currentTab">0</span> von <span id="totalTabs">0</span></p>
+    <progress id="progress" value="0" max="100"></progress>
+  </div>
+  
+  <div id="tabList"></div>
 </body>
 </html>
