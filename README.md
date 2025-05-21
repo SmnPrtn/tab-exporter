@@ -47,3 +47,4 @@ Tab Exporter speichert alle Daten lokal auf deinem Gerät. Es werden keine Daten
 
 ## Lizenz
 
+[MIT](LICENSE)
