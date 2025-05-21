@@ -1,13 +1,28 @@
 {
   "manifest_version": 3,
   "name": "Tab Exporter",
-  "version": "1.0",
-  "description": "Exportiere alle offenen Tabs als wiederverwendbaren Link.",
-  "permissions": ["tabs", "downloads", "clipboardWrite"],
+  "version": "1.1",
+  "description": "Exportiere ausgewählte offene Tabs als wiederverwendbaren Link oder speichere sie als Tab-Sets.",
+  "permissions": [
+    "tabs", 
+    "downloads", 
+    "clipboardWrite",
+    "storage"
+  ],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }
