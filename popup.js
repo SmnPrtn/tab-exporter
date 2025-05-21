@@ -1,5 +1,6 @@
 // Globale Variablen
 let allTabs = [];
+let popupPermissionGranted = false;
 
 // Funktion zum Laden aller geöffneten Tabs
 async function loadTabs() {
@@ -28,7 +29,7 @@ function displayTabs(tabs) {
       const title = document.createElement('div');
       title.className = 'tab-title';
       title.textContent = tab.title;
-      title.title = tab.url; // Tooltip mit vollständiger URL
+      title.title = tab.url;
       
       tabItem.appendChild(checkbox);
       tabItem.appendChild(favicon);
@@ -47,24 +48,22 @@ async function generateLink() {
     showStatus('Bitte wähle mindestens einen Tab aus!', true);
     return;
   }
-  
+
   const selectedTabs = selectedTabIndices.map(index => allTabs[index]);
-  
-  // URLs für den Link vorbereiten
+
   const urls = selectedTabs
     .map(tab => tab.url)
     .filter(url => url.startsWith('http'))
     .map(url => encodeURIComponent(url))
     .join(',');
-  
-  // Prüfen der URL-Länge
+
   if (urls.length > 7000) {
     showStatus('Warnung: Die URL ist sehr lang und könnte in manchen Browsern Probleme verursachen. Bitte reduziere die Anzahl der Tabs.', true);
   }
-  
+
   const baseUrl = 'https://smnprtn.github.io/tab-exporter/open-tabs.html?urls=';
   const fullUrl = baseUrl + urls;
-  
+
   try {
     await navigator.clipboard.writeText(fullUrl);
     showStatus(`Link für ${selectedTabIndices.length} Tabs in die Zwischenablage kopiert!`);
@@ -80,7 +79,7 @@ async function saveTabSet() {
     showStatus('Bitte gib einen Namen für das Tab-Set ein!', true);
     return;
   }
-  
+
   const selectedTabIndices = Array.from(document.querySelectorAll('#tabList input[type="checkbox"]:checked'))
     .map(checkbox => parseInt(checkbox.dataset.index));
   
@@ -88,7 +87,7 @@ async function saveTabSet() {
     showStatus('Bitte wähle mindestens einen Tab aus!', true);
     return;
   }
-  
+
   const selectedTabs = selectedTabIndices.map(index => {
     const tab = allTabs[index];
     return {
@@ -97,8 +96,7 @@ async function saveTabSet() {
       favIconUrl: tab.favIconUrl
     };
   });
-  
-  // Zum Background-Script senden zum Speichern
+
   chrome.runtime.sendMessage(
     { 
       action: 'saveTabs', 
@@ -122,21 +120,14 @@ async function saveTabSet() {
 function showStatus(message, isError = false) {
   const status = document.getElementById('status');
   status.textContent = message;
-  
-  if (isError) {
-    status.className = 'error';
-  } else {
-    status.className = '';
-  }
-  
-  // Nach 5 Sekunden automatisch ausblenden
+  status.className = isError ? 'error' : '';
   setTimeout(() => {
     status.textContent = '';
     status.className = '';
   }, 5000);
 }
 
-// Gespeicherte Tab-Sets laden und anzeigen
+// Gespeicherte Tab-Sets laden
 function loadSavedSets() {
   chrome.runtime.sendMessage({ action: 'getSavedSets' }, response => {
     const savedSetsList = document.getElementById('savedSetsList');
@@ -146,25 +137,26 @@ function loadSavedSets() {
       savedSetsList.textContent = 'Keine gespeicherten Tab-Sets vorhanden.';
       return;
     }
-    
+
     for (const [name, tabs] of Object.entries(response.sets)) {
       const setItem = document.createElement('div');
       setItem.className = 'tab-item';
-      
+
       const setTitle = document.createElement('div');
       setTitle.className = 'tab-title';
       setTitle.textContent = name + ` (${tabs.length} Tabs)`;
-      
+
       const loadButton = document.createElement('button');
       loadButton.textContent = 'Öffnen';
+      loadButton.disabled = !popupPermissionGranted;
+
       loadButton.addEventListener('click', () => {
         const urls = tabs.map(tab => encodeURIComponent(tab.url)).join(',');
         const baseUrl = 'https://smnprtn.github.io/tab-exporter/open-tabs.html?urls=';
         const fullUrl = baseUrl + urls;
-        navigator.clipboard.writeText(fullUrl);
-        showStatus(`Link für Set "${name}" in die Zwischenablage kopiert!`);
+        window.open(fullUrl, '_blank');
       });
-      
+
       setItem.appendChild(setTitle);
       setItem.appendChild(loadButton);
       savedSetsList.appendChild(setItem);
@@ -174,30 +166,39 @@ function loadSavedSets() {
 
 // Event-Listener
 document.addEventListener('DOMContentLoaded', () => {
-  // Tabs laden
   loadTabs();
-  
-  // Gespeicherte Sets abrufen 
   loadSavedSets();
-  
-  // Event-Listener hinzufügen
+
   document.getElementById('generate').addEventListener('click', generateLink);
   
   document.getElementById('selectAll').addEventListener('click', () => {
-    document.querySelectorAll('#tabList input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = true;
-    });
+    document.querySelectorAll('#tabList input[type="checkbox"]').forEach(cb => cb.checked = true);
   });
   
   document.getElementById('deselectAll').addEventListener('click', () => {
-    document.querySelectorAll('#tabList input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = false;
-    });
+    document.querySelectorAll('#tabList input[type="checkbox"]').forEach(cb => cb.checked = false);
   });
-  
+
   document.getElementById('openSaveForm').addEventListener('click', () => {
     document.getElementById('saveForm').style.display = 'flex';
   });
-  
+
   document.getElementById('saveSet').addEventListener('click', saveTabSet);
+
+  // Neuer Button: Popup-Erlaubnis einholen
+  document.getElementById('popupPermissionBtn').addEventListener('click', () => {
+    const test = window.open("about:blank", "_blank");
+    if (!test) {
+      showStatus("Bitte Popups oben in der URL-Leiste zulassen!", true);
+    } else {
+      popupPermissionGranted = true;
+      test.close();
+      showStatus("Popup-Erlaubnis erteilt. Jetzt kannst du Tabs öffnen!");
+      document.querySelectorAll('button').forEach(btn => {
+        if (btn.textContent === "Öffnen") {
+          btn.disabled = false;
+        }
+      });
+    }
+  });
 });
