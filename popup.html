@@ -29,6 +29,14 @@
       background-color: #3367d6;
     }
     
+    button.delete {
+      background-color: #db4437;
+    }
+    
+    button.delete:hover {
+      background-color: #c53929;
+    }
+    
     #status {
       color: #0f9d58;
       font-weight: bold;
@@ -95,40 +103,50 @@
     .saved-sets {
       margin-top: 15px;
     }
+    
+    .set-actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .set-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Tab Exporter</h2>
-
-    <!-- Neuer Button zur Popup-Erlaubnis -->
-    <button id="popupPermissionBtn">✔️ Popup-Erlaubnis aktivieren</button>
-
+    
     <div>
-      <button id="selectAll">Alle auswählen</button>
-      <button id="deselectAll">Alle abwählen</button>
+      <button id="selectAll">Select All</button>
+      <button id="deselectAll">Deselect All</button>
     </div>
     
     <div class="tab-list" id="tabList">
-      <!-- Tabs werden hier dynamisch eingefügt -->
+      <!-- Tabs will be inserted here dynamically -->
     </div>
     
     <div class="actions">
-      <button id="generate">Link generieren</button>
-      <button id="openSaveForm">Als Set speichern</button>
+      <button id="generate">Generate Link</button>
+      <button id="openSaveForm">Save as Set</button>
     </div>
     
     <div id="saveForm" style="display: none;">
-      <input type="text" id="setName" placeholder="Name des Tab-Sets">
-      <button id="saveSet">Speichern</button>
+      <input type="text" id="setName" placeholder="Name of Tab Set">
+      <button id="saveSet">Save</button>
     </div>
     
     <p id="status"></p>
     
     <div class="saved-sets">
-      <h3>Gespeicherte Tab-Sets</h3>
+      <h3>Saved Tab Sets</h3>
       <div id="savedSetsList">
-        <!-- Gespeicherte Sets werden hier angezeigt -->
+        <!-- Saved sets will be displayed here -->
       </div>
     </div>
   </div>
