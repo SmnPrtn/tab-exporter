@@ -137,7 +137,7 @@
           button.disabled = false;
           statusElement.textContent = `Ready to open ${urls.length} tabs.`;
           instructionElement.innerHTML = `
-            <strong>Schritt 1:</strong> Click on "Allow to open tabs" to give Chrome the permission to open more than one tab.
+            <strong>Step 1:</strong> Click on "Allow to open tabs" to give Chrome the permission to open more than one tab.
             <br><small>This opens the first tab as a test.</small>
           `;
           instructionElement.className = 'instruction';
@@ -148,7 +148,7 @@
           button.disabled = false;
           statusElement.textContent = 'Permission given! Ready to open all tabs.';
           instructionElement.innerHTML = `
-            <strong>Schritt 2:</strong> Click on "Open all Tabs", to open ${urls.length} tabs.
+            <strong>Step 2:</strong> Click on "Open all Tabs", to open ${urls.length} tabs.
           `;
           instructionElement.className = 'instruction success';
           break;
