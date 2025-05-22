@@ -154,11 +154,11 @@
           break;
           
         case 'done':
-          button.textContent = 'Fertig!';
+          button.textContent = 'Finished!';
           button.disabled = true;
-          statusElement.textContent = `All ${urls.length} tabs have been opened sucessfully!`;
+          statusElement.textContent = `All ${urls.length} tabs have been opened successfully!`;
           instructionElement.innerHTML = `
-            <strong>✓ Abgeschlossen:</strong> All Tabs have been opened, you can close this window now.
+            <strong>✓ Completed:</strong> All tabs have been opened, you can close this window now.
           `;
           instructionElement.className = 'instruction success';
           break;
@@ -179,17 +179,19 @@
           const testWindow = window.open(firstUrl, '_blank');
           
           if (testWindow && !testWindow.closed) {
-            // Tab im Hintergrund halten - Fokus zurück auf diese Seite
-            window.focus();
+            // WICHTIG: Tab im Hintergrund halten - Fokus zurück auf diese Seite
+            setTimeout(() => {
+              window.focus();
+            }, 100);
             
             popupBlockerTestPassed = true;
             currentStep = 'open';
             updateButtonState();
           } else {
-            throw new Error('Popup blockiert');
+            throw new Error('Popup blocked');
           }
         } catch (error) {
-          alert('Popup-blocker activ! Please allow popups on this side and try again.');
+          alert('Popup-blocker active! Please allow popups on this site and try again.');
           return;
         }
         
@@ -206,9 +208,11 @@
           for (let i = 1; i < urls.length; i++) {
             const newWindow = window.open(urls[i], '_blank');
             
-            // Sicherstellen, dass der Tab im Hintergrund bleibt
+            // WICHTIG: Sicherstellen, dass der Tab im Hintergrund bleibt
             if (newWindow) {
-              window.focus();
+              setTimeout(() => {
+                window.focus();
+              }, 50);
             }
             
             progressElement.value = i + 1;
@@ -224,7 +228,7 @@
           updateButtonState();
           
         } catch (error) {
-          alert('Fehler beim Öffnen der Tabs: ' + error.message);
+          alert('Error while opening tabs: ' + error.message);
           button.disabled = false;
         }
       }
@@ -235,7 +239,7 @@
       urls = getUrlsFromParams();
       
       if (urls.length === 0) {
-        document.getElementById('status').textContent = 'Keine URLs gefunden.';
+        document.getElementById('status').textContent = 'No URLs found.';
         document.getElementById('controls').style.display = 'none';
         return;
       }
@@ -267,7 +271,7 @@
   </div>
   
   <div id="progressContainer" style="display: none;">
-    <p>Öffne Tab <span id="currentTab">0</span> von <span id="totalTabs2">0</span></p>
+    <p>Opening tab <span id="currentTab">0</span> of <span id="totalTabs2">0</span></p>
     <progress id="progress" value="0" max="100"></progress>
   </div>
   
