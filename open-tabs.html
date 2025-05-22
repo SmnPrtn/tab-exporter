@@ -172,13 +172,16 @@
       const progressElement = document.getElementById('progress');
       
       if (currentStep === 'allow') {
-        // Schritt 1: Popup-Blocker-Test
+        // Schritt 1: Popup-Blocker-Test mit Hintergrund-Tab
         try {
-          // Einen einzelnen Tab öffnen um zu testen ob Popups erlaubt sind
+          // Einen einzelnen Tab im Hintergrund öffnen um zu testen ob Popups erlaubt sind
           const firstUrl = urls[0];
           const testWindow = window.open(firstUrl, '_blank');
           
           if (testWindow && !testWindow.closed) {
+            // Tab im Hintergrund halten - Fokus zurück auf diese Seite
+            window.focus();
+            
             popupBlockerTestPassed = true;
             currentStep = 'open';
             updateButtonState();
@@ -191,16 +194,23 @@
         }
         
       } else if (currentStep === 'open') {
-        // Schritt 2: Alle Tabs öffnen
+        // Schritt 2: Alle restlichen Tabs öffnen
         button.disabled = true;
         progressContainer.style.display = 'block';
         progressElement.max = urls.length;
-        progressElement.value = 0;
+        progressElement.value = 1; // Ersten Tab bereits geöffnet
+        document.getElementById('currentTab').textContent = 1;
         
         try {
-          // Ersten Tab überspringen (wurde bereits geöffnet)
+          // Restliche Tabs öffnen (ab dem zweiten)
           for (let i = 1; i < urls.length; i++) {
-            window.open(urls[i], '_blank');
+            const newWindow = window.open(urls[i], '_blank');
+            
+            // Sicherstellen, dass der Tab im Hintergrund bleibt
+            if (newWindow) {
+              window.focus();
+            }
+            
             progressElement.value = i + 1;
             document.getElementById('currentTab').textContent = i + 1;
             
@@ -209,10 +219,6 @@
               await new Promise(resolve => setTimeout(resolve, 200));
             }
           }
-          
-          // Ersten Tab auch im Progress anzeigen
-          progressElement.value = urls.length;
-          document.getElementById('currentTab').textContent = urls.length;
           
           currentStep = 'done';
           updateButtonState();
