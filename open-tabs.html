@@ -25,18 +25,24 @@
     }
     
     button {
-      padding: 8px 16px;
+      padding: 12px 24px;
       background-color: #4285f4;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-weight: bold;
+      font-size: 16px;
       margin-right: 10px;
     }
     
     button:hover {
       background-color: #3367d6;
+    }
+    
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
     }
     
     #tabList {
@@ -60,8 +66,25 @@
       width: 100%;
       margin: 10px 0;
     }
+    
+    .instruction {
+      background-color: #e8f0fe;
+      border: 1px solid #4285f4;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    
+    .success {
+      background-color: #e8f5e8;
+      border: 1px solid #0f9d58;
+    }
   </style>
   <script>
+    let urls = [];
+    let currentStep = 'allow'; // 'allow', 'open', 'done'
+    let popupBlockerTestPassed = false;
+    
     // URLs aus den Query-Parametern extrahieren
     function getUrlsFromParams() {
       const params = new URLSearchParams(window.location.search);
@@ -102,49 +125,124 @@
       });
     }
     
-    // Tabs öffnen mit Fortschrittsanzeige
-    async function openTabs(urls) {
+    // Button-Status und Text aktualisieren
+    function updateButtonState() {
+      const button = document.getElementById('actionBtn');
       const statusElement = document.getElementById('status');
+      const instructionElement = document.getElementById('instruction');
+      
+      switch(currentStep) {
+        case 'allow':
+          button.textContent = 'Allow to open tabs';
+          button.disabled = false;
+          statusElement.textContent = `Bereit zum Öffnen von ${urls.length} Tabs.`;
+          instructionElement.innerHTML = `
+            <strong>Schritt 1:</strong> Klicken Sie auf "Allow to open tabs", um Chrome die Berechtigung zum Öffnen mehrerer Tabs zu geben.
+            <br><small>Dies öffnet zunächst nur einen Tab als Test.</small>
+          `;
+          instructionElement.className = 'instruction';
+          break;
+          
+        case 'open':
+          button.textContent = 'Open all Tabs';
+          button.disabled = false;
+          statusElement.textContent = 'Berechtigung erteilt! Bereit zum Öffnen aller Tabs.';
+          instructionElement.innerHTML = `
+            <strong>Schritt 2:</strong> Klicken Sie auf "Open all Tabs", um alle ${urls.length} Tabs zu öffnen.
+          `;
+          instructionElement.className = 'instruction success';
+          break;
+          
+        case 'done':
+          button.textContent = 'Fertig!';
+          button.disabled = true;
+          statusElement.textContent = `Alle ${urls.length} Tabs wurden erfolgreich geöffnet!`;
+          instructionElement.innerHTML = `
+            <strong>✓ Abgeschlossen:</strong> Alle Tabs wurden geöffnet. Sie können dieses Fenster nun schließen.
+          `;
+          instructionElement.className = 'instruction success';
+          break;
+      }
+    }
+    
+    // Hauptfunktion für Button-Klicks
+    async function handleButtonClick() {
+      const button = document.getElementById('actionBtn');
+      const progressContainer = document.getElementById('progressContainer');
       const progressElement = document.getElementById('progress');
       
-      if (urls.length === 0) {
-        statusElement.textContent = 'Keine URLs gefunden.';
-        document.getElementById('controls').style.display = 'none';
-        return;
-      }
-      
-      statusElement.textContent = 'Bereit zum Öffnen von ' + urls.length + ' Tabs.';
-      document.getElementById('totalTabs').textContent = urls.length;
-      
-      document.getElementById('openAllBtn').addEventListener('click', async () => {
-        statusElement.textContent = 'Öffne Tabs...';
+      if (currentStep === 'allow') {
+        // Schritt 1: Popup-Blocker-Test
+        try {
+          // Einen einzelnen Tab öffnen um zu testen ob Popups erlaubt sind
+          const firstUrl = urls[0];
+          const testWindow = window.open(firstUrl, '_blank');
+          
+          if (testWindow && !testWindow.closed) {
+            popupBlockerTestPassed = true;
+            currentStep = 'open';
+            updateButtonState();
+          } else {
+            throw new Error('Popup blockiert');
+          }
+        } catch (error) {
+          alert('Popup-Blocker aktiv! Bitte erlauben Sie Popups für diese Seite und versuchen Sie es erneut.');
+          return;
+        }
+        
+      } else if (currentStep === 'open') {
+        // Schritt 2: Alle Tabs öffnen
+        button.disabled = true;
+        progressContainer.style.display = 'block';
         progressElement.max = urls.length;
         progressElement.value = 0;
         
-        document.getElementById('controls').style.display = 'none';
-        document.getElementById('progressContainer').style.display = 'block';
-        
-        // Tabs mit Verzögerung öffnen, um Browser-Blockierung zu vermeiden
-        for (let i = 0; i < urls.length; i++) {
-          window.open(urls[i], '_blank');
-          progressElement.value = i + 1;
-          document.getElementById('currentTab').textContent = i + 1;
-          
-          // Kleine Verzögerung zwischen Tab-Öffnungen
-          if (i < urls.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 300));
+        try {
+          // Ersten Tab überspringen (wurde bereits geöffnet)
+          for (let i = 1; i < urls.length; i++) {
+            window.open(urls[i], '_blank');
+            progressElement.value = i + 1;
+            document.getElementById('currentTab').textContent = i + 1;
+            
+            // Kleine Verzögerung zwischen Tab-Öffnungen
+            if (i < urls.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 200));
+            }
           }
+          
+          // Ersten Tab auch im Progress anzeigen
+          progressElement.value = urls.length;
+          document.getElementById('currentTab').textContent = urls.length;
+          
+          currentStep = 'done';
+          updateButtonState();
+          
+        } catch (error) {
+          alert('Fehler beim Öffnen der Tabs: ' + error.message);
+          button.disabled = false;
         }
-        
-        statusElement.textContent = 'Alle Tabs wurden geöffnet!';
-      });
+      }
     }
     
     // Initialisierung nach Seitenladen
     window.onload = function() {
-      const urls = getUrlsFromParams();
+      urls = getUrlsFromParams();
+      
+      if (urls.length === 0) {
+        document.getElementById('status').textContent = 'Keine URLs gefunden.';
+        document.getElementById('controls').style.display = 'none';
+        return;
+      }
+      
       displayTabList(urls);
-      openTabs(urls);
+      document.getElementById('totalTabs').textContent = urls.length;
+      document.getElementById('totalTabs2').textContent = urls.length;
+      
+      // Event-Listener für den Button
+      document.getElementById('actionBtn').addEventListener('click', handleButtonClick);
+      
+      // Initialen Button-Status setzen
+      updateButtonState();
     };
   </script>
 </head>
@@ -153,14 +251,17 @@
   
   <div id="status">Tabs werden geladen...</div>
   
+  <div id="instruction" class="instruction">
+    <!-- Wird durch JavaScript aktualisiert -->
+  </div>
+  
   <div id="controls">
-    <p>Möchten Sie <span id="totalTabs">0</span> Tabs öffnen?</p>
-    <button id="openAllBtn">Alle Tabs jetzt öffnen</button>
-    <button onclick="window.close()">Abbrechen</button>
+    <p>Gefunden: <span id="totalTabs">0</span> Tabs zum Öffnen</p>
+    <button id="actionBtn">Allow to open tabs</button>
   </div>
   
   <div id="progressContainer" style="display: none;">
-    <p>Öffne Tab <span id="currentTab">0</span> von <span id="totalTabs">0</span></p>
+    <p>Öffne Tab <span id="currentTab">0</span> von <span id="totalTabs2">0</span></p>
     <progress id="progress" value="0" max="100"></progress>
   </div>
   
