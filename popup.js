@@ -75,7 +75,7 @@ async function generateLink() {
         .map(checkbox => parseInt(checkbox.dataset.tabId));
     
     if (selectedTabIds.length === 0) {
-        showStatus('Bitte wähle mindestens einen Tab aus!', true);
+        showStatus('Please choose one tab!', true);
         return;
     }
     
@@ -91,7 +91,7 @@ async function generateLink() {
     
     // Prüfen der URL-Länge
     if (urls.length > 7000) {
-        showStatus('Warnung: Die URL ist sehr lang und könnte in manchen Browsern Probleme verursachen. Bitte reduziere die Anzahl der Tabs.', true);
+        showStatus('Warning: This URL is to long, choose less tabs.', true);
     }
     
     const baseUrl = 'https://smnprtn.github.io/tab-exporter/open-tabs.html?urls=';
@@ -99,7 +99,7 @@ async function generateLink() {
     
     try {
         await navigator.clipboard.writeText(fullUrl);
-        showStatus(`Link für ${selectedTabIds.length} Tabs in die Zwischenablage kopiert!`);
+        showStatus(`Link for tab-set ${selectedTabIds.length} has been saved in your clipboard!`);
     } catch (err) {
         showStatus('Fehler beim Kopieren des Links: ' + err.message, true);
     }
@@ -110,7 +110,7 @@ async function saveTabSet() {
     const setName = document.getElementById('setName').value.trim();
     
     if (!setName) {
-        showStatus('Bitte gib einen Namen für das Tab-Set ein!', true);
+        showStatus('Give your tab-set a name!', true);
         return;
     }
     
@@ -118,7 +118,7 @@ async function saveTabSet() {
         .map(checkbox => parseInt(checkbox.dataset.tabId));
     
     if (selectedTabIds.length === 0) {
-        showStatus('Bitte wähle mindestens einen Tab aus!', true);
+        showStatus('Please choose one tab!', true);
         return;
     }
     
@@ -143,10 +143,10 @@ async function saveTabSet() {
             if (response && response.success) {
                 document.getElementById('setName').value = '';
                 document.getElementById('saveForm').style.display = 'none';
-                showStatus(`Tab-Set "${setName}" erfolgreich gespeichert!`);
+                showStatus(`Tab-Set "${setName}" saved successfully!`);
                 loadSavedSets();
             } else {
-                showStatus('Fehler beim Speichern des Tab-Sets!', true);
+                showStatus('Error while saving tab-sets!', true);
             }
         }
     );
@@ -177,7 +177,7 @@ function loadSavedSets() {
         savedSetsList.innerHTML = '';
         
         if (!response.sets || Object.keys(response.sets).length === 0) {
-            savedSetsList.textContent = 'Keine gespeicherten Tab-Sets vorhanden.';
+            savedSetsList.textContent = 'No saved tab-sets here.';
             return;
         }
         
@@ -195,7 +195,7 @@ function loadSavedSets() {
             buttonsContainer.style.gap = '5px';
             
             const copyButton = document.createElement('button');
-            copyButton.textContent = 'Link kopieren';
+            copyButton.textContent = 'Copy Link';
             copyButton.style.padding = '4px 8px';
             copyButton.style.fontSize = '12px';
             copyButton.addEventListener('click', () => {
@@ -204,22 +204,22 @@ function loadSavedSets() {
                 const fullUrl = baseUrl + urls;
                 
                 navigator.clipboard.writeText(fullUrl);
-                showStatus(`Link für Set "${name}" in die Zwischenablage kopiert!`);
+                showStatus(`Copy link of set "${name}" in your clipboard!`);
             });
             
             const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Löschen';
+            deleteButton.textContent = 'Delete';
             deleteButton.style.padding = '4px 8px';
             deleteButton.style.fontSize = '12px';
             deleteButton.style.backgroundColor = '#db4437';
             deleteButton.addEventListener('click', () => {
-                if (confirm(`Möchten Sie das Tab-Set "${name}" wirklich löschen?`)) {
+                if (confirm(`Do you really want to delete tab-set "${name}"?`)) {
                     chrome.runtime.sendMessage(
                         { action: 'deleteSet', setName: name },
                         response => {
                             if (response && response.success) {
                                 loadSavedSets();
-                                showStatus(`Tab-Set "${name}" wurde gelöscht.`);
+                                showStatus(`Tab-Set "${name}" deleted.`);
                             }
                         }
                     );
