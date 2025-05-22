@@ -135,10 +135,10 @@
         case 'allow':
           button.textContent = 'Allow to open tabs';
           button.disabled = false;
-          statusElement.textContent = `Bereit zum Öffnen von ${urls.length} Tabs.`;
+          statusElement.textContent = `Ready to open ${urls.length} tabs.`;
           instructionElement.innerHTML = `
-            <strong>Schritt 1:</strong> Klicken Sie auf "Allow to open tabs", um Chrome die Berechtigung zum Öffnen mehrerer Tabs zu geben.
-            <br><small>Dies öffnet zunächst nur einen Tab als Test.</small>
+            <strong>Schritt 1:</strong> Click on "Allow to open tabs" to give Chrome the permission to open more than one tab.
+            <br><small>This opens the first tab as a test.</small>
           `;
           instructionElement.className = 'instruction';
           break;
@@ -146,9 +146,9 @@
         case 'open':
           button.textContent = 'Open all Tabs';
           button.disabled = false;
-          statusElement.textContent = 'Berechtigung erteilt! Bereit zum Öffnen aller Tabs.';
+          statusElement.textContent = 'Permission given! Ready to open all tabs.';
           instructionElement.innerHTML = `
-            <strong>Schritt 2:</strong> Klicken Sie auf "Open all Tabs", um alle ${urls.length} Tabs zu öffnen.
+            <strong>Schritt 2:</strong> Click on "Open all Tabs", to open ${urls.length} tabs.
           `;
           instructionElement.className = 'instruction success';
           break;
@@ -156,9 +156,9 @@
         case 'done':
           button.textContent = 'Fertig!';
           button.disabled = true;
-          statusElement.textContent = `Alle ${urls.length} Tabs wurden erfolgreich geöffnet!`;
+          statusElement.textContent = `All ${urls.length} tabs have been opened sucessfully!`;
           instructionElement.innerHTML = `
-            <strong>✓ Abgeschlossen:</strong> Alle Tabs wurden geöffnet. Sie können dieses Fenster nun schließen.
+            <strong>✓ Abgeschlossen:</strong> All Tabs have been opened, you can close this window now.
           `;
           instructionElement.className = 'instruction success';
           break;
@@ -189,7 +189,7 @@
             throw new Error('Popup blockiert');
           }
         } catch (error) {
-          alert('Popup-Blocker aktiv! Bitte erlauben Sie Popups für diese Seite und versuchen Sie es erneut.');
+          alert('Popup-blocker activ! Please allow popups on this side and try again.');
           return;
         }
         
@@ -255,14 +255,14 @@
 <body>
   <h1>Tab Exporter</h1>
   
-  <div id="status">Tabs werden geladen...</div>
+  <div id="status">Loading Tabs...</div>
   
   <div id="instruction" class="instruction">
     <!-- Wird durch JavaScript aktualisiert -->
   </div>
   
   <div id="controls">
-    <p>Gefunden: <span id="totalTabs">0</span> Tabs zum Öffnen</p>
+    <p>Found: <span id="totalTabs">0</span> tabs to open</p>
     <button id="actionBtn">Allow to open tabs</button>
   </div>
   
