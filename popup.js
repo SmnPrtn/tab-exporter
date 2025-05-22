@@ -1,4 +1,4 @@
-// Globale Variablen
+No saved tab-sets.// Globale Variablen
 let allTabs = [];
 let currentWindowId = null;
 let showAllWindowsMode = true;
