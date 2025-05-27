@@ -109,9 +109,9 @@ async function showSuccessMessage(tabId, count) {
   console.log(`${count} Tabs wurden erfolgreich geöffnet`);
   
   // Optional: Den Opener-Tab nach einer kurzen Verzögerung schließen
-  // setTimeout(() => {
-  //   chrome.tabs.remove(tabId).catch(() => {});
-  // }, 3000);
+   setTimeout(() => {
+     chrome.tabs.remove(tabId).catch(() => {});
+   }, 2500);
 }
 
 // Hilfsfunktion für Verzögerungen
