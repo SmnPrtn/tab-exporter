@@ -132,17 +132,8 @@
           return;
         }
         
-        // Info anzeigen
-        showInfo(data.urls.length);
-        
-        // Prüfen ob Extension installiert ist
-        if (!chrome?.runtime?.id) {
-          showExtensionRequired();
-          return;
-        }
-        
-        // Extension wird die Tabs öffnen
-        // Diese Seite dient nur als Fallback
+        // Erfolg anzeigen!
+        showSuccess(data.urls.length);
         
       } catch (error) {
         console.error('Fehler:', error);
@@ -158,6 +149,27 @@
       `;
     }
     
+    function showSuccess(count) {
+      document.getElementById('content').innerHTML = `
+        <h1>✓ Erfolgreich!</h1>
+        <div class="info">
+          <strong>${count} ${count === 1 ? 'Tab wurde' : 'Tabs wurden'}</strong> im Hintergrund geöffnet.
+        </div>
+        <p>Sie können diesen Tab jetzt schließen.</p>
+        <button onclick="window.close()" style="
+          background-color: #1a1a1a;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 500;
+          cursor: pointer;
+          margin-top: 16px;
+        ">Tab schließen</button>
+      `;
+    }
+    
     function showInfo(count) {
       document.getElementById('content').innerHTML = `
         <h1>Tab Exporter</h1>
@@ -165,17 +177,6 @@
           <strong>${count} ${count === 1 ? 'Tab' : 'Tabs'}</strong> werden geöffnet...
         </div>
         <p>Die Tab Exporter Extension öffnet die Tabs automatisch im Hintergrund.</p>
-      `;
-    }
-    
-    function showExtensionRequired() {
-      document.getElementById('content').innerHTML = `
-        <h1>Extension erforderlich</h1>
-        <p>Um diesen Tab-Export Link zu öffnen, benötigen Sie die Tab Exporter Chrome Extension.</p>
-        <div class="info">
-          Die Extension öffnet alle ${data.urls.length} Tabs automatisch im Hintergrund.
-        </div>
-        <a href="https://github.com/smnprtn/tab-exporter" class="btn">Extension installieren</a>
       `;
     }
     
