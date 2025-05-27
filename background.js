@@ -105,74 +105,13 @@ function isValidUrl(url) {
 
 // Erfolgsmeldung anzeigen
 async function showSuccessMessage(tabId, count) {
-  try {
-    // Script in den Opener-Tab injizieren
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      func: (count) => {
-        // Erfolgsseite anzeigen
-        document.body.innerHTML = `
-          <div style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f8f9fa;
-            text-align: center;
-          ">
-            <div style="
-              background: white;
-              padding: 40px;
-              border-radius: 16px;
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              max-width: 400px;
-            ">
-              <div style="
-                width: 64px;
-                height: 64px;
-                background-color: #10b981;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 24px;
-              ">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <h1 style="
-                font-size: 24px;
-                font-weight: 600;
-                color: #1a1a1a;
-                margin: 0 0 12px;
-              ">Erfolgreich!</h1>
-              <p style="
-                font-size: 16px;
-                color: #666;
-                margin: 0 0 24px;
-              ">${count} ${count === 1 ? 'Tab wurde' : 'Tabs wurden'} im Hintergrund geöffnet</p>
-              <button onclick="window.close()" style="
-                background-color: #1a1a1a;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: 500;
-                cursor: pointer;
-              ">Tab schließen</button>
-            </div>
-          </div>
-        `;
-      },
-      args: [count]
-    });
-  } catch (error) {
-    console.error('Fehler beim Anzeigen der Erfolgsmeldung:', error);
-  }
+  // Nichts tun - die GitHub Pages zeigt bereits die Erfolgsmeldung an
+  console.log(`${count} Tabs wurden erfolgreich geöffnet`);
+  
+  // Optional: Den Opener-Tab nach einer kurzen Verzögerung schließen
+  // setTimeout(() => {
+  //   chrome.tabs.remove(tabId).catch(() => {});
+  // }, 3000);
 }
 
 // Hilfsfunktion für Verzögerungen
