@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Exporter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Tab Exporter</h1>
+      <p class="subtitle">Teile deine offenen Tabs</p>
+    </header>
+    
+    <main>
+      <div class="info-section">
+        <span class="tab-count" id="tabCount">0 Tabs</span>
+        <span class="window-info">im aktuellen Fenster</span>
+      </div>
+      
+      <button id="exportBtn" class="export-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+        Link erstellen
+      </button>
+      
+      <div id="result" class="result hidden">
+        <div class="success-message">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Link wurde kopiert!
+        </div>
+        <div class="link-preview" id="linkPreview"></div>
+        <button id="copyBtn" class="copy-btn">Erneut kopieren</button>
+      </div>
+      
+      <div id="error" class="error hidden">
+        <span id="errorMessage"></span>
+      </div>
+    </main>
+    
+    <footer>
+      <p class="hint">Beim Öffnen des Links werden alle Tabs im Hintergrund geöffnet</p>
+    </footer>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

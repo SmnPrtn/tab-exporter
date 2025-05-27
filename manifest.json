@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Exporter",
+  "version": "1.0.0",
+  "description": "Exportiere alle offenen Tabs als teilbaren Link",
+  "permissions": [
+    "tabs",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
