@@ -1,5 +1,5 @@
 // Konstanten
-const OPENER_URL = 'https://tab-exporter.github.io/open/';
+const OPENER_URL = 'https://smnprtn.github.io/tab-exporter/open/';
 const MAX_URL_LENGTH = 8000; // Sicherheitslimit für URL-Länge
 
 // DOM Elemente
