@@ -18,7 +18,7 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
     
     // Prüfen ob es ein Tab-Exporter Link ist
     const url = new URL(details.url);
-    if (!url.href.includes('tab-exporter.github.io/open/')) return;
+    if (!url.href.includes('smnprtn.github.io/tab-exporter/open/')) return;
     
     // Hash mit kodierten Daten extrahieren
     const hash = url.hash.slice(1); // # entfernen
