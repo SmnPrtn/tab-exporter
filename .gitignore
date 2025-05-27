@@ -1,0 +1,30 @@
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build Files
+*.zip
+*.crx
+*.pem
+
+# Node (falls Sie build tools verwenden)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Temporary Files
+*.tmp
+*.temp
+.cache/
+
+# Private Keys
+key.pem
+*.key
