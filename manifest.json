@@ -5,7 +5,9 @@
   "description": "Exportiere alle offenen Tabs als teilbaren Link",
   "permissions": [
     "tabs",
-    "activeTab"
+    "activeTab",
+    "webNavigation",    // ← NEU: Für den Service Worker
+    "scripting"         // ← NEU: Für das Script-Injection
   ],
   "action": {
     "default_popup": "popup.html",
